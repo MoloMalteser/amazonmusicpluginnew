@@ -1,11 +1,14 @@
 {
-  "name": "Example Plugin",
-  "author": "John Doe",
-  "flags": ["debug", "_root"],
-  "api_version": 1,
+  "name": "amazonmusicnew",
+  "author": "Molo Malteser",
+  "description": "Amazon Music Streaming Plugin für Steam Deck",
+  "version": "0.1.0",
+  "tags": ["music", "amazon", "streaming"],
+  "image": "assets/logo.png",
+  "flags": [],
+  "debug": true,
+  "root": false,
   "publish": {
-    "tags": ["template", "root"],
-    "description": "Decky example plugin.",
-    "image": "https://opengraph.githubassets.com/1/SteamDeckHomebrew/PluginLoader"
+    "github": "https://github.com/deinuser/MoloMalteser"
   }
 }
