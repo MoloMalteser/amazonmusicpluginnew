@@ -12,6 +12,8 @@
     "@rollup/plugin-typescript": "^11.0.0",
     "rollup": "^3.25.0",
     "typescript": "^5.1.6"
+    "type": "module"
+
   },
   "remote_binary_bundling": false
 }
