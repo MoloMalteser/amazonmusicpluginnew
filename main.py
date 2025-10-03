@@ -1,70 +1,51 @@
-import sys
 import os
-
-# defaults-Ordner zum Pfad hinzufügen
-sys.path.append(os.path.join(os.path.dirname(__file__), "../defaults"))
-
 from amazonmusic import AmazonMusic
 from settings import SettingsManager
-import subprocess
 import logging
+import asyncio
 
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
-# Initialize SettingsManager
+# Settings-Pfad von Decky
 settingsDir = os.environ["DECKY_PLUGIN_SETTINGS_DIR"]
 settings = SettingsManager(name="settings", settings_directory=settingsDir)
 settings.read()
 
+# Funktion, um Amazon Music Client zu erstellen
+def get_am_client():
+    creds = settings.getSetting("credentials", None)
+    if not creds:
+        # Wenn keine Credentials gespeichert sind, Platzhalter leer lassen
+        creds = ["", ""]
+    return AmazonMusic(credentials=lambda: creds)
+
+am = get_am_client()
+
 class Plugin:
-    def __init__(self):
-        self.am = None
-
-    async def init_am(self, email: str, password: str):
-        self.am = AmazonMusic(credentials=lambda: [email, password])
-        return {"status": "initialized"}
-
-    async def search_songs(self, query: str):
-        results = []
-        search_res = self.am.search(query, tracks=True, albums=False, playlists=False, artists=False, stations=False)
-        for label, item in search_res:
-            for doc in item.get("documents", []):
-                results.append({
-                    "title": doc.get("title"),
-                    "artist": doc.get("artistName"),
-                    "id": doc.get("asin")
-                })
-        return results
+    async def set_credentials(self, email: str, password: str):
+        settings.setSetting("credentials", [email, password])
+        settings.commit()
+        global am
+        am = get_am_client()
+        return {"status": "saved"}
 
     async def recommendations(self):
-        recs = []
-        for album in self.am.albums:
-            for track in album.tracks:
-                recs.append({
-                    "title": track.name,
-                    "artist": track.artist,
-                    "id": track.identifier
-                })
-                if len(recs) >= 6:
-                    break
-            if len(recs) >= 6:
-                break
-        return recs
+        station = am.create_station("A2UW0MECRAWILL")
+        return [{"id": t.id, "title": t.name, "artist": t.artist} for t in station.tracks[:10]]
 
     async def recently_played(self):
-        return settings.getSetting("recent", [])
+        tracks = am.library.get("recently_played", [])[:10]
+        return [{"id": t.id, "title": t.name, "artist": t.artist} for t in tracks]
+
+    async def search_songs(self, query: str):
+        results = am.search(query=query)[:10]
+        return [{"id": t.id, "title": t.name, "artist": t.artist} for t in results]
 
     async def play_song(self, song_id: str):
-        for album in self.am.albums:
-            for track in album.tracks:
-                if track.identifier == song_id:
-                    subprocess.run(["mpv", "--no-video", track.stream_url])
-                    recent = settings.getSetting("recent", [])
-                    recent.insert(0, {"title": track.name, "artist": track.artist, "id": track.identifier})
-                    settings.setSetting("recent", recent[:6])
-                    settings.commit()
-                    return {"status": "playing", "track": track.name}
-        return {"status": "not_found"}
+        track = am.get_track(song_id)
+        os.system(f'cvlc --play-and-exit "{track.getUrl()}"')
+        return {"status": "playing", "song_id": song_id}
 
     async def _main(self):
         pass
