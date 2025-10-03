@@ -2,6 +2,7 @@
   "name": "amazonmusicnew",
   "version": "0.1.0",
   "description": "Amazon Music Streaming Plugin für Steam Deck",
+  "type": "module",
   "scripts": {
     "dev": "rollup -c -w",
     "build": "rollup -c"
@@ -11,8 +12,7 @@
     "@rollup/plugin-node-resolve": "^15.0.0",
     "@rollup/plugin-typescript": "^11.0.0",
     "rollup": "^3.25.0",
-    "typescript": "^5.1.6",
-    "type": "module"
+    "typescript": "^5.1.6"
 
   },
   "remote_binary_bundling": false
