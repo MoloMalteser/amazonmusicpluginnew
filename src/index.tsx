@@ -6,6 +6,14 @@ export default definePlugin(((serverAPI?: ServerAPI) => {
   const [recommendations, setRecommendations] = useState<any[]>([]);
   const [recent, setRecent] = useState<any[]>([]);
   const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const saveCredentials = async () => {
+    await serverAPI!.callPluginMethod("set_credentials", { email, password });
+    fetchRecommendations();
+    fetchRecentlyPlayed();
+  };
 
   const fetchRecommendations = async () => {
     const recs = await serverAPI!.callPluginMethod("recommendations", {});
@@ -35,6 +43,22 @@ export default definePlugin(((serverAPI?: ServerAPI) => {
 
   return (
     <div style={{ padding: 10 }}>
+      <div style={{ marginBottom: 10 }}>
+        <input
+          type="text"
+          placeholder="Amazon Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
+        <input
+          type="password"
+          placeholder="Amazon Passwort"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+        <button onClick={saveCredentials}>Speichern</button>
+      </div>
+
       <div style={{ display: "flex", justifyContent: "space-between" }}>
         <input
           type="text"
@@ -86,4 +110,4 @@ export default definePlugin(((serverAPI?: ServerAPI) => {
       </div>
     </div>
   );
-}) as any); // TypeScript-ignore-Typfehler
+}) as any);
